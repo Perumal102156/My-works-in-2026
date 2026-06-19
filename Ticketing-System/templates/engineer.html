@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Engineer Dashboard</title>
+</head>
+
+<body>
+
+<center>
+    <h2>Engineer Dashboard</h2>
+</center>
+
+<hr>
+
+<h3>Ticket Summary Report</h3>
+
+<table border="1" cellpadding="10">
+    <tr>
+        <th>Open Tickets</th>
+        <th>Pending Tickets</th>
+        <th>Closed Tickets</th>
+    </tr>
+
+    <tr>
+        <td>{{ open_count }}</td>
+        <td>{{ pending_count }}</td>
+        <td>{{ closed_count }}</td>
+    </tr>
+</table>
+
+<hr>
+
+<button onclick="showSection('open')">Open Tickets</button>
+<button onclick="showSection('pending')">Pending Tickets</button>
+<button onclick="showSection('closed')">Closed Tickets</button>
+
+<br><br>
+<h3>Download Report</h3>
+
+<form action="/download_report" method="get">
+
+    From Date:
+    <input type="date" name="from_date">
+
+    To Date:
+    <input type="date" name="to_date">
+
+    Status:
+    <select name="status">
+        <option value="">All</option>
+        <option value="Open">Open</option>
+        <option value="Pending">Pending</option>
+        <option value="Closed">Closed</option>
+    </select>
+
+    <button type="submit">
+        Download Excel Report
+    </button>
+
+</form>
+
+<hr>
+
+<!--<a href="/download_report">
+    <button>Download Excel Report</button>
+</a>-->
+
+<hr>
+
+<!-- OPEN SECTION -->
+
+<div id="openSection">
+
+    <h3>Open Tickets</h3>
+
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>Ticket ID</th>
+            <th>Name</th>
+            <th>Designation</th>
+            <th>Issue</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+
+        {% for ticket in tickets %}
+        {% if ticket.status == "Open" %}
+
+        <tr>
+            <td>{{ ticket.ticket_id }}</td>
+            <td>{{ ticket.name }}</td>
+            <td>{{ ticket.designation }}</td>
+            <td>{{ ticket.issue }}</td>
+            <td>{{ ticket.description }}</td>
+            <td>{{ ticket.status }}</td>
+
+            <td>
+                <form action="/update_ticket/{{ ticket.id }}" method="POST">
+                    <select name="status">
+                        <option value="Open" selected>Open</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+
+                    <br><br>
+
+                    <textarea name="notes" placeholder="Update Notes"></textarea>
+
+                    <br><br>
+
+                    <button type="submit">Update</button>
+                </form>
+            </td>
+        </tr>
+
+        {% endif %}
+        {% endfor %}
+    </table>
+
+</div>
+
+<!-- PENDING SECTION -->
+
+<div id="pendingSection" style="display:none;">
+
+    <h3>Pending Tickets</h3>
+
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>Ticket ID</th>
+            <th>Name</th>
+            <th>Designation</th>
+            <th>Issue</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+
+        {% for ticket in tickets %}
+        {% if ticket.status == "Pending" %}
+
+        <tr>
+            <td>{{ ticket.ticket_id }}</td>
+            <td>{{ ticket.name }}</td>
+            <td>{{ ticket.designation }}</td>
+            <td>{{ ticket.issue }}</td>
+            <td>{{ ticket.description }}</td>
+            <td>{{ ticket.status }}</td>
+
+            <td>
+                <form action="/update_ticket/{{ ticket.id }}" method="POST">
+                    <select name="status">
+                        <option value="Open">Open</option>
+                        <option value="Pending" selected>Pending</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+
+                    <br><br>
+
+                    <textarea name="notes" placeholder="Update Notes"></textarea>
+
+                    <br><br>
+
+                    <button type="submit">Update</button>
+                </form>
+            </td>
+        </tr>
+
+        {% endif %}
+        {% endfor %}
+    </table>
+
+</div>
+
+<!-- CLOSED SECTION -->
+
+<div id="closedSection" style="display:none;">
+
+    <h3>Closed Tickets</h3>
+
+    <table border="1" cellpadding="10">
+        <tr>
+            <th>Ticket ID</th>
+            <th>Name</th>
+            <th>Designation</th>
+            <th>Issue</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+
+        {% for ticket in tickets %}
+        {% if ticket.status == "Closed" %}
+
+        <tr>
+            <td>{{ ticket.ticket_id }}</td>
+            <td>{{ ticket.name }}</td>
+            <td>{{ ticket.designation }}</td>
+            <td>{{ ticket.issue }}</td>
+            <td>{{ ticket.description }}</td>
+            <td>{{ ticket.status }}</td>
+
+            <td>
+                <form action="/update_ticket/{{ ticket.id }}" method="POST">
+                    <select name="status">
+                        <option value="Open">Open</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Closed" selected>Closed</option>
+                    </select>
+
+                    <br><br>
+
+                    <textarea name="notes" placeholder="Update Notes"></textarea>
+
+                    <br><br>
+
+                    <button type="submit">Update</button>
+                </form>
+            </td>
+        </tr>
+
+        {% endif %}
+        {% endfor %}
+    </table>
+
+</div>
+
+<script>
+function showSection(section) {
+    document.getElementById("openSection").style.display = "none";
+    document.getElementById("pendingSection").style.display = "none";
+    document.getElementById("closedSection").style.display = "none";
+
+    if(section == "open") {
+        document.getElementById("openSection").style.display = "block";
+    }
+
+    if(section == "pending") {
+        document.getElementById("pendingSection").style.display = "block";
+    }
+
+    if(section == "closed") {
+        document.getElementById("closedSection").style.display = "block";
+    }
+}
+</script>
+
+</body>
+</html>
