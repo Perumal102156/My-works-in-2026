@@ -45,7 +45,49 @@ def submit_ticket():
     <p>Ticket ID: {ticket_id}</p>
     <a href="/">Back</a>
     """
+@app.route("/dashboard")
+def dashboard():
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
+    cursor.execute("SELECT COUNT(*) AS total FROM tickets")
+    total = cursor.fetchone()["total"]
+
+    cursor.execute("SELECT COUNT(*) AS open_count FROM tickets WHERE status='Open'")
+    open_count = cursor.fetchone()["open_count"]
+
+    cursor.execute("SELECT COUNT(*) AS pending_count FROM tickets WHERE status='Pending'")
+    pending_count = cursor.fetchone()["pending_count"]
+
+    cursor.execute("SELECT COUNT(*) AS closed_count FROM tickets WHERE status='Closed'")
+    closed_count = cursor.fetchone()["closed_count"]
+
+    cursor.execute("""
+        SELECT issue, COUNT(*) AS count
+        FROM tickets
+        GROUP BY issue
+    """)
+    issue_data = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT ticket_id, name, designation, issue, status, created_at
+        FROM tickets
+        ORDER BY id DESC
+        LIMIT 5
+    """)
+    recent_tickets = cursor.fetchall()
+
+    conn.close()
+
+    return render_template(
+        "dashboard.html",
+        total=total,
+        open_count=open_count,
+        pending_count=pending_count,
+        closed_count=closed_count,
+        issue_data=issue_data,
+        recent_tickets=recent_tickets
+    )
 @app.route("/engineer")
 def engineer():
 
