@@ -2,6 +2,7 @@ import pandas as pd
 from flask import Flask, render_template, request, redirect, send_file
 import random
 import pymysql
+import json
 
 app = Flask(__name__)
 
@@ -68,6 +69,8 @@ def dashboard():
         GROUP BY issue
     """)
     issue_data = cursor.fetchall()
+    issue_labels = [row["issue"] for row in issue_data]
+    issue_counts = [row["count"] for row in issue_data]
 
     cursor.execute("""
         SELECT ticket_id, name, designation, issue, status, created_at
@@ -80,14 +83,15 @@ def dashboard():
     conn.close()
 
     return render_template(
-        "dashboard.html",
-        total=total,
-        open_count=open_count,
-        pending_count=pending_count,
-        closed_count=closed_count,
-        issue_data=issue_data,
-        recent_tickets=recent_tickets
-    )
+    "dashboard.html",
+    total=total,
+    open_count=open_count,
+    pending_count=pending_count,
+    closed_count=closed_count,
+    issue_labels=json.dumps(issue_labels),
+    issue_counts=json.dumps(issue_counts),
+    recent_tickets=recent_tickets
+)
 @app.route("/engineer")
 def engineer():
 
@@ -146,6 +150,11 @@ def download_report():
     from_date = request.args.get("from_date")
     to_date = request.args.get("to_date")
     status = request.args.get("status")
+    print("From Date:", from_date)
+    print("To Date:", to_date)
+    print("Status:", status)
+    if not from_date and not to_date and not status:
+            return "Please select at least one filter before downloading the report."
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -183,6 +192,9 @@ def download_report():
     cursor.execute(query, values)
 
     rows = cursor.fetchall()
+    if not rows:
+     conn.close()
+     return "No records found for the selected filters."
 
     conn.close()
 

@@ -2,24 +2,158 @@
 <html>
 <head>
     <title>Management Reports</title>
+
+    <style>
+
+        body{
+            margin:0;
+            font-family:Arial;
+            background:#f4f8fc;
+        }
+
+        .container{
+            display:flex;
+        }
+
+        .sidebar{
+            width:230px;
+            min-height:100vh;
+            background:#003366;
+            color:white;
+            padding:20px;
+        }
+
+        .sidebar h2{
+            text-align:center;
+            margin-bottom:30px;
+        }
+
+        .sidebar a{
+            display:block;
+            color:white;
+            text-decoration:none;
+            padding:12px;
+            margin-bottom:10px;
+            border-radius:5px;
+        }
+
+        .sidebar a:hover{
+            background:#0055aa;
+        }
+
+        .main{
+            flex:1;
+            padding:30px;
+        }
+
+        .filter-box{
+            background:white;
+            padding:25px;
+            border-radius:10px;
+            box-shadow:0 2px 10px rgba(0,0,0,.1);
+            width:650px;
+        }
+
+        table{
+            width:100%;
+        }
+
+        td{
+            padding:10px;
+        }
+
+        input,select{
+            width:100%;
+            padding:8px;
+        }
+
+        button{
+            padding:10px 20px;
+            background:#003366;
+            color:white;
+            border:none;
+            border-radius:5px;
+            cursor:pointer;
+        }
+
+        button:hover{
+            background:#0055aa;
+        }
+
+    </style>
+
 </head>
+
 <body>
 
-<center>
-    <h2>Management Reports</h2>
-</center>
+<div class="container">
 
-<hr>
+<div class="sidebar">
 
-<a href="/download_report">
-    <button>Download All Tickets Excel Report</button>
-</a>
+<h2>IT Ticket Dashboard</h2>
 
-<br><br>
+<a href="/dashboard">Overview</a>
 
-<a href="/engineer">
-    <button>Back to Engineer Dashboard</button>
-</a>
+<a href="/engineer">Engineer Dashboard</a>
+
+<a href="/reports">Reports</a>
+
+</div>
+
+
+<div class="main">
+
+<h2>Management Reports</h2>
+
+<div class="filter-box">
+
+<form method="GET" action="/download_report">
+
+<table>
+
+<tr>
+    <td>From Date</td>
+    <td>
+        <input type="date" name="from_date">
+    </td>
+</tr>
+
+<tr>
+    <td>To Date</td>
+    <td>
+        <input type="date" name="to_date">
+    </td>
+</tr>
+
+<tr>
+    <td>Status</td>
+    <td>
+        <select name="status">
+            <option value="">All Status</option>
+            <option value="Open">Open</option>
+            <option value="Pending">Pending</option>
+            <option value="Closed">Closed</option>
+        </select>
+    </td>
+</tr>
+
+<tr>
+    <td colspan="2" align="center">
+        <button type="submit">
+            Download Excel Report
+        </button>
+    </td>
+</tr>
+
+</table>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
 
 </body>
 </html>

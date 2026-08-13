@@ -131,7 +131,7 @@
 
         <a href="/dashboard">Overview</a>
         <a href="/engineer">Engineer Dashboard</a>
-        <a href="/download_report">Download Report</a>
+        <a href="/reports">Download Report</a>
     </div>
 
     <div class="main">
@@ -209,24 +209,25 @@
 </div>
 
 <script>
-    const issueLabels = [
-        {% for item in issue_data %}
-            "{{ item.issue }}",
-        {% endfor %}
-    ];
-
-    const issueCounts = [
-        {% for item in issue_data %}
-            {{ item.count }},
-        {% endfor %}
-    ];
+    const issueLabels = {{ issue_labels | safe }};
+    const issueCounts = {{ issue_counts | safe }};
 
     new Chart(document.getElementById("issueChart"), {
         type: "pie",
         data: {
             labels: issueLabels,
             datasets: [{
-                data: issueCounts
+                data: issueCounts,
+                backgroundColor: [
+                     "#36A2EB",
+                     "#FF6384",
+                     "#FFCE56",
+                     "#4BC0C0",
+                     "#9966FF",
+                     "#FF9F40",
+                     "#8BC34A",
+                     "#FF5722"
+                ]
             }]
         }
     });
