@@ -1,4 +1,10 @@
 flask
 pandas
+<<<<<<< HEAD
 PyMySQL
 openpyxl
+=======
+PyMySql
+openpyxl
+EOF
+>>>>>>> 34e0370 (Dockerize Flask ticketing system)
