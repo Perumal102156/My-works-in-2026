@@ -1,0 +1,6 @@
+Flask
+Flask-SocketIO
+simple-websocket
+Flask-Login
+pandas
+openpyxl

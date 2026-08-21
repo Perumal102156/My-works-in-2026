@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Agent Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+
+        body {
+            font-family: Arial;
+            background: #f4f4f4;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+        }
+
+        button {
+            padding: 10px;
+            margin-top: 10px;
+            border: none;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .ready {
+            background: green;
+        }
+
+        .break {
+            background: orange;
+        }
+
+        .logout {
+            background: red;
+        }
+
+    </style>
+
+</head>
+
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="container-fluid mt-2">
+
+    <!-- Top Bar -->
+
+    <div class="card p-2 mb-2">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+                <b>Agent:</b> {{ session['agent'] }} |
+                <b>Campaign:</b> {{ session['campaign'] }} |
+                <b>Status:</b>
+                <span id="agentStatus">Ready</span>
+            </div>
+
+            <div class="d-flex gap-2 align-items-center">
+
+    <button class="btn btn-success btn-sm"
+        onclick="updateStatus('Ready')">
+
+    Ready
+
+</button>
+<div class="dropdown">
+
+    <button class="btn btn-warning btn-sm dropdown-toggle"
+            type="button"
+            data-bs-toggle="dropdown">
+
+        Break
+
+    </button>
+
+    <ul class="dropdown-menu">
+
+    <li>
+        <a class="dropdown-item"
+           href="#"
+           onclick="updateStatus('Lunch Break')">
+
+            Lunch
+
+        </a>
+    </li>
+
+    <li>
+        <a class="dropdown-item"
+           href="#"
+           onclick="updateStatus('Tea Break')">
+
+            Tea
+
+        </a>
+    </li>
+
+    <li>
+        <a class="dropdown-item"
+           href="#"
+           onclick="updateStatus('Restroom Break')">
+
+            Restroom
+
+        </a>
+    </li>
+
+    <li>
+        <a class="dropdown-item"
+           href="#"
+           onclick="updateStatus('Meeting')">
+
+            Meeting
+
+        </a>
+    </li>
+
+</ul>
+</div>
+    <a href="/agent_logout" class="btn btn-danger btn-sm">
+        Logout
+    </a>
+</div>
+
+
+        </div>
+
+    </div>
+
+    <!-- Main Dashboard -->
+
+    <div class="row">
+
+        <!-- Left Side -->
+
+        <div class="col-md-4">
+
+            <div class="card p-3">
+
+                <h5>Current Call</h5>
+                <h4 id="callTimer" class="text-danger">
+                    00:00
+                </h4>
+
+                <form method="POST">
+
+                    <div class="row g-2">
+
+                        <div class="col-6">
+                            <input type="text"
+                                   name="customer_name"
+                                   class="form-control"
+                                   placeholder="Customer Name">
+                        </div>
+
+                        <div class="col-6">
+                            <input type="text"
+                                   name="phone_number"
+                                   class="form-control"
+                                   placeholder="Phone Number">
+                        </div>
+
+                        <div class="col-6">
+                            <input type="text"
+                                   name="campaign"
+                                   class="form-control"
+                                   value="{{ session['campaign'] }}" readonly>
+                        </div>
+
+                        <div class="col-6">
+                            <select name="call_status" class="form-control">
+                                <option>Ringing</option>
+                                <option>Connected</option>
+                                <option>Busy</option>
+                            </select>
+                        </div>
+
+                        <div class="col-6">
+                            <select name="disposition" class="form-control">
+                                <option>Interested</option>
+                                <option>Callback</option>
+                                <option>DND</option>
+                            </select>
+                        </div>
+
+                        <div class="col-6">
+                            <input type="datetime-local"
+                                   name="callback_date"
+                                   class="form-control">
+                        </div>
+
+                        <div class="col-12">
+                            <textarea name="notes"
+                                      class="form-control"
+                                      rows="2"
+                                      placeholder="Notes"></textarea>
+                        </div>
+
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3">
+
+                        <button type="submit"
+                                class="btn btn-danger w-100" onclick="stopCall()">
+                            Hangup
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-success w-100"  onclick="startCall()">
+                            Dial
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<script>
+
+function updateStatus(status) {
+
+    document.getElementById("agentStatus").innerText = status;
+
+}
+
+let seconds = 0;
+let timer;
+let callRunning = false;
+
+function startCall() {
+
+    if (callRunning) return;
+
+    let number =
+        document.querySelector(
+            'input[name="phone_number"]'
+        ).value;
+
+    if (number === "") {
+
+        alert("Enter customer number");
+
+        return;
+    }
+
+    window.location.href =
+        "tel:" + number;
+
+    callRunning = true;
+
+    document.getElementById("agentStatus").innerText =
+        "On Call";
+
+    timer = setInterval(function() {
+
+        seconds++;
+
+        let mins = Math.floor(seconds / 60);
+        let secs = seconds % 60;
+
+        mins = mins < 10 ? "0" + mins : mins;
+        secs = secs < 10 ? "0" + secs : secs;
+
+        document.getElementById("callTimer").innerText =
+            mins + ":" + secs;
+
+    }, 1000);
+
+}
+
+function stopCall() {
+
+    clearInterval(timer);
+
+    callRunning = false;
+
+    seconds = 0;
+
+    document.getElementById("callTimer").innerText =
+        "00:00";
+
+    document.getElementById("agentStatus").innerText =
+        "Ready";
+
+}
+
+</script>
+</body>
+
+</html>

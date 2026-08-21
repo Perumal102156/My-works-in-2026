@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Campaign List</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            padding:20px;
+            background:#f4f4f4;
+        }
+
+        .topbar{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+
+        .btn{
+            padding:10px;
+            background:green;
+            color:white;
+            text-decoration:none;
+            border-radius:5px;
+        }
+
+        table{
+            width:100%;
+            margin-top:20px;
+            border-collapse:collapse;
+            background:white;
+        }
+
+        table, th, td{
+            border:1px solid #ccc;
+        }
+
+        th, td{
+            padding:10px;
+            text-align:left;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="topbar">
+
+    <h1>Campaign List</h1>
+
+    <a href="/create_campaign" class="btn">
+        + Create New Campaign
+    </a>
+<a href="/assign_campaign">Assign Campaign</a>
+</div>
+
+<table>
+
+<tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Call Type</th>
+    <th>Caller ID</th>
+    <th>Queue</th>
+    <th>CRM</th>
+    <th>Dial Ratio</th>
+    <th>Active</th>
+</tr>
+
+{% for c in campaigns %}
+
+<tr>
+
+    <td>{{ c[0] }}</td>
+    <td>{{ c[1] }}</td>
+    <td>{{ c[2] }}</td>
+    <td>{{ c[3] }}</td>
+    <td>{{ c[4] }}</td>
+    <td>{{ c[5] }}</td>
+    <td>{{ c[7] }}</td>
+    <td>{{ c[9] }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+</html>

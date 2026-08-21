@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Assign Campaign</title>
+</head>
+
+<body>
+
+<h1>Assign Campaign</h1>
+
+<form method="POST">
+
+    <select name="agent_id">
+
+        {% for a in agents %}
+        <option value="{{ a[0] }}">{{ a[1] }}</option>
+        {% endfor %}
+
+    </select>
+
+    <select name="campaign_id">
+
+        {% for c in campaigns %}
+        <option value="{{ c[0] }}">{{ c[1] }}</option>
+        {% endfor %}
+
+    </select>
+
+    <button type="submit">Assign</button>
+
+</form>
+
+<hr>
+
+<table border="1">
+
+<tr>
+    <th>Agent</th>
+    <th>Campaign</th>
+</tr>
+
+{% for m in mappings %}
+<tr>
+    <td>{{ m[0] }}</td>
+    <td>{{ m[1] }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</body>
+</html>
