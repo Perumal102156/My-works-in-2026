@@ -10,3 +10,6 @@ def test_homepage():
 if __name__ == "__main__":
     test_homepage()
     print("Application test PASSED")
+
+
+print("Jenkins automated test execution confirmed")
