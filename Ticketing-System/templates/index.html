@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IT Ticketing System</title>
+
+    <style>
+        label {
+            display: inline-block;
+            width: 150px;
+        }
+    </style>
+</head>
+
+<body>
+
+<center>
+    <h2>IT Ticketing System</h2>
+</center>
+
+<button type="button" onclick="showForm()">Raise Ticket Here</button>
+
+<br><br>
+
+<form action="/submit" method="POST">
+
+    <div id="ticketForm" style="display:none;">
+
+        <label>Name</label>
+        <input type="text" name="name">
+
+        <br><br>
+
+        <label>Designation</label>
+        <input type="text" name="designation">
+
+        <br><br>
+
+        <label>Issue Subject</label>
+        <input type="text" name="issue">
+
+        <br><br>
+
+        <label>Problem Description</label>
+        <textarea name="description"></textarea>
+
+        <br><br>
+
+        <button type="submit">Submit Ticket</button>
+
+    </div>
+
+</form>
+
+<script>
+    function showForm() {
+        document.getElementById("ticketForm").style.display = "block";
+    }
+</script>
+
+</body>
+</html>

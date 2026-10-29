@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Agents</title>
+
+    <style>
+
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background: #f4f4f4;
+        }
+
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        input, select {
+            padding: 10px;
+            margin: 5px;
+        }
+
+        button {
+            padding: 10px;
+            background: blue;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+        }
+
+        table th,
+        table td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<h1>Agent Management</h1>
+
+<form method="POST">
+
+    <input
+        type="text"
+        name="name"
+        placeholder="Agent Name"
+        required
+    >
+
+    <input
+        type="text"
+        name="extension"
+        placeholder="Extension"
+        required
+    >
+
+    <input
+        type="password"
+        name="password"
+        placeholder="Password"
+        required
+    >
+
+    <select name="status">
+
+        <option value="Active">
+            Active
+        </option>
+
+        <option value="Inactive">
+            Inactive
+        </option>
+
+    </select>
+
+    <button type="submit">
+        Add Agent
+    </button>
+
+</form>
+
+<table>
+
+    <tr>
+
+        <th>ID</th>
+        <th>Name</th>
+        <th>Extension</th>
+        <th>Password</th>
+        <th>Status</th>
+        <th>Action</th>
+
+    </tr>
+
+    {% for agent in agents %}
+
+    <tr>
+
+        <td>{{ agent[0] }}</td>
+        <td>{{ agent[1] }}</td>
+        <td>{{ agent[2] }}</td>
+        <td>{{ agent[3] }}</td>
+        <td>{{ agent[4] }}</td>
+
+        <td>
+
+            <div style="display:flex; gap:10px; justify-content:center;">
+
+                <a href="/edit_agent/{{ agent[0] }}">
+
+                    <button type="button">
+                        Edit
+                    </button>
+
+                </a>
+
+                <a href="/delete_agent/{{ agent[0] }}"
+                   onclick="return confirm('Delete this agent?')">
+
+                    <button
+                        type="button"
+                        style="background:red;"
+                    >
+
+                        Delete
+
+                    </button>
+
+                </a>
+
+            </div>
+
+        </td>
+
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+</body>
+
+</html>

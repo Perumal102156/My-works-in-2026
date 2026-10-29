@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dialer Dashboard</title>
+
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+
+    <style>
+
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #f4f4f4;
+        }
+
+        .sidebar {
+            width: 220px;
+            height: 100vh;
+            background: #222;
+            color: white;
+            position: fixed;
+            padding-top: 20px;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 15px;
+            text-decoration: none;
+        }
+
+        .sidebar a:hover {
+            background: #444;
+        }
+
+        .main {
+            margin-left: 220px;
+            padding: 20px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logout-btn {
+            padding: 10px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .card p {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>Dialer</h2>
+
+    <a href="#">Dashboard</a>
+    <a href="/agents">Agents</a>
+    <a href="/reports">Reports</a>
+    <a href="#">Logs</a>
+    <a href="#">Settings</a>
+    <a href="/campaigns">Campaigns</a>
+     <!--<a href="/assign_campaign"> Assign Campaign </a>-->
+
+
+</div>
+
+<div class="main">
+
+    <div class="topbar">
+
+        <h1>Real-Time Monitoring Dashboard</h1>
+
+        <a href="/logout">
+            <button class="logout-btn">Logout</button>
+        </a>
+        
+
+    </div>
+
+    <div class="container">
+
+        <div class="card">
+            <h2>No Of Agent</h2>
+            <p id="agents">{{ stats.agents }}</p>
+        </div>
+
+        <div class="card">
+            <h2>Active Calls</h2>
+            <p id="active_calls">{{ stats.active_calls }}</p>
+        </div>
+
+        <div class="card">
+            <h2>Waiting Calls</h2>
+            <p id="waiting_calls">{{ stats.waiting_calls }}</p>
+        </div>
+
+        <div class="card">
+            <h2>Total Calls</h2>
+            <p id="total_calls">{{ stats.total_calls }}</p>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    var socket = io();
+
+    socket.on('update', function(data) {
+
+        document.getElementById('active_calls').innerHTML = data.active_calls;
+        document.getElementById('waiting_calls').innerHTML = data.waiting_calls;
+        document.getElementById('total_calls').innerHTML = data.total_calls;
+
+    });
+
+</script>
+
+</body>
+</html>

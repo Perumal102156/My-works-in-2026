@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Create Campaign</title>
+
+</head>
+
+<body>
+
+<h1>Create Campaign</h1>
+
+<form method="POST">
+
+    <input type="text" name="name" placeholder="Campaign Name" required>
+
+    <select name="call_type">
+        <option value="Inbound">Inbound</option>
+        <option value="Outbound">Outbound</option>
+    </select>
+
+    <input type="text" name="caller_id" placeholder="Caller ID">
+
+    <input type="text" name="queue_name" placeholder="Queue Name">
+
+    <select name="crm">
+        <option value="None">Select CRM</option>
+        <option value="Zoho">Zoho</option>
+        <option value="Salesforce">Salesforce</option>
+    </select>
+
+    <textarea name="pause_codes" placeholder="Pause Codes"></textarea>
+
+    <select name="dial_ratio">
+        <option value="1">1:1</option>
+        <option value="2">2:1</option>
+        <option value="3">3:1</option>
+    </select>
+
+    <input type="number" name="wrap_time" placeholder="Wrap Time">
+
+    <select name="active">
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+    </select>
+
+    <button type="submit">Create Campaign</button>
+
+</form>
+
+</body>
+</html>

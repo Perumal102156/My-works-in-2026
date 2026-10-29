@@ -1,0 +1,4 @@
+*.db
+*.xlsx
+SQL Login details.txt
+__pycache__/
