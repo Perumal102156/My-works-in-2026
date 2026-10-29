@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LAN Chat - Admin</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        input, select, button { padding: 9px; margin: 5px 0; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f1f5f9; }
+        .notice { color: #155eef; }
+        .form-row { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h2>Admin Dashboard</h2>
+    <p><a href="{{ url_for('chat') }}">Back to Chat</a></p>
+
+    {% for message in get_flashed_messages() %}
+        <p class="notice">{{ message }}</p>
+    {% endfor %}
+
+    <h3>Create user account</h3>
+    <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="create">
+
+        <div class="form-row">
+            <label>User ID<br>
+                <input name="user_id" maxlength="50" required>
+            </label>
+        </div>
+
+        <div class="form-row">
+            <label>Employee name<br>
+                <input name="display_name" maxlength="100" required>
+            </label>
+        </div>
+
+        <div class="form-row">
+            <label>Temporary password (minimum 6 characters)<br>
+                <input type="password" name="password" minlength="6"
+                       autocomplete="new-password" required>
+            </label>
+        </div>
+
+        <div class="form-row">
+            <label>Role<br>
+                <select name="role">
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </label>
+        </div>
+
+        <button type="submit">Create Account</button>
+    </form>
+
+    <h3>Registered accounts</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for account in users %}
+            <tr>
+                <td>{{ account.user_id }}</td>
+                <td>{{ account.display_name }}</td>
+                <td>{{ account.role }}</td>
+                <td>{{ 'Active' if account.active else 'Disabled' }}</td>
+                <td>{{ account.created_at }}</td>
+                <td>
+                    <form method="post">
+                        <input type="hidden" name="csrf_token"
+                               value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="toggle">
+                        <input type="hidden" name="target_id"
+                               value="{{ account.id }}">
+                        <button type="submit"
+                            {% if account.id == session.get('uid') %}
+                                disabled
+                            {% endif %}>
+                            {{ 'Disable' if account.active else 'Enable' }}
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

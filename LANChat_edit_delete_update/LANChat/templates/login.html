@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LAN Chat - Login</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f1f5f9;
+               display: grid; place-items: center; min-height: 90vh; }
+        .card { background: white; padding: 28px; width: 320px;
+                max-width: 85%; border-radius: 12px;
+                box-shadow: 0 4px 18px #0001; }
+        input, button { box-sizing: border-box; width: 100%;
+                        padding: 12px; margin-top: 12px; }
+        button { background: #155eef; color: white; border: 0;
+                 border-radius: 6px; cursor: pointer; }
+        .error { color: #b42318; }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <h2>LAN Chat</h2>
+        <p>Sign in with your assigned account.</p>
+
+        {% for message in get_flashed_messages() %}
+            <p class="error">{{ message }}</p>
+        {% endfor %}
+
+        <form method="post" action="{{ url_for('login') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <label for="user_id">User ID</label>
+            <input id="user_id" name="user_id" required maxlength="50"
+                   autocomplete="username" autofocus>
+
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required
+                   autocomplete="current-password">
+
+            <button type="submit">Sign in</button>
+        </form>
+    </main>
+</body>
+</html>

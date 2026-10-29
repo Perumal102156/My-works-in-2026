@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LAN Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        #messages { border: 1px solid #ccc; height: 300px;
+                    padding: 10px; overflow-y: auto; margin: 15px 0; }
+        input, button { padding: 10px; }
+        #message { width: 65%; max-width: 65%; }
+        .top { display: flex; justify-content: space-between;
+               align-items: center; gap: 10px; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+    <div class="top">
+        <div>
+            <h2>LAN Chat Application</h2>
+            <p>Signed in as <strong>{{ user.display_name }}</strong>
+               ({{ user.user_id }})</p>
+        </div>
+        <div>
+            {% if user.role == 'admin' %}
+                <a href="{{ url_for('admin') }}">Admin Dashboard</a>
+            {% endif %}
+            <form method="post" action="{{ url_for('logout') }}"
+                  style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="connection">Connecting...</div>
+    <div id="messages" aria-live="polite"></div>
+
+    <form id="messageForm">
+        <input id="message" maxlength="2000"
+               placeholder="Type your message..." autocomplete="off" required>
+        <button type="submit">Send</button>
+    </form>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        const messages = document.getElementById("messages");
+        const messageInput = document.getElementById("message");
+
+        socket.on("connect", () => {
+            document.getElementById("connection").textContent = "Connected";
+        });
+
+        socket.on("disconnect", () => {
+            document.getElementById("connection").textContent = "Disconnected";
+        });
+
+        document.getElementById("messageForm").addEventListener("submit", (event) => {
+            event.preventDefault();
+            const message = messageInput.value.trim();
+            if (!message) return;
+            socket.emit("send_message", { message });
+            messageInput.value = "";
+            messageInput.focus();
+        });
+
+        socket.on("receive_message", (data) => {
+            const line = document.createElement("p");
+            const sender = document.createElement("strong");
+            sender.textContent = data.user + " (" + data.user_id + "): ";
+            line.appendChild(sender);
+            line.appendChild(document.createTextNode(data.message));
+            messages.appendChild(line);
+            messages.scrollTop = messages.scrollHeight;
+        });
+
+        socket.on("chat_error", (data) => {
+            alert(data.message);
+        });
+    </script>
+</body>
+</html>

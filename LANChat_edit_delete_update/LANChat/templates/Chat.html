@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LAN Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        #messages { border: 1px solid #ccc; height: 360px; padding: 10px;
+                    overflow-y: auto; margin: 15px 0; }
+        input, button { padding: 10px; }
+        #message { width: 65%; max-width: 65%; box-sizing: border-box; }
+        .top { display: flex; justify-content: space-between; align-items: center;
+               gap: 10px; flex-wrap: wrap; }
+        .chat-line { display: flex; align-items: flex-start; gap: 8px;
+                     margin: 12px 0; overflow-wrap: anywhere; }
+        .chat-content { flex: 1; min-width: 0; }
+        .chat-text { white-space: pre-wrap; }
+        .edited { color: #667085; font-size: 12px; margin-left: 5px; }
+        .actions { display: flex; gap: 5px; }
+        .actions button { padding: 4px 7px; cursor: pointer; }
+        .edit-input { width: min(500px, 90%); box-sizing: border-box; }
+        #connection { color: #475467; }
+    </style>
+</head>
+<body>
+    <div class="top">
+        <div>
+            <h2>LAN Chat Application</h2>
+            <p>Signed in as <strong>{{ user.display_name }}</strong> ({{ user.user_id }})</p>
+        </div>
+        <div>
+            {% if user.role == 'admin' %}
+                <a href="{{ url_for('admin') }}">Admin Dashboard</a>
+            {% endif %}
+            <form method="post" action="{{ url_for('logout') }}" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="connection">Connecting...</div>
+    <div id="messages" aria-live="polite"></div>
+
+    <form id="messageForm">
+        <input id="message" maxlength="2000" placeholder="Type your message..."
+               autocomplete="off" required>
+        <button type="submit">Send</button>
+    </form>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        const messages = document.getElementById("messages");
+        const messageInput = document.getElementById("message");
+        const currentUid = {{ user.id|tojson }};
+        const isAdmin = {{ (user.role == 'admin')|tojson }};
+        const rendered = new Map();
+
+        socket.on("connect", () => {
+            document.getElementById("connection").textContent = "Connected";
+        });
+        socket.on("disconnect", () => {
+            document.getElementById("connection").textContent = "Disconnected";
+        });
+
+        function canManage(data) {
+            return isAdmin || data.sender_uid === currentUid;
+        }
+
+        function addMessage(data) {
+            if (rendered.has(data.id)) return;
+            const line = document.createElement("div");
+            line.className = "chat-line";
+            line.dataset.messageId = data.id;
+
+            const content = document.createElement("div");
+            content.className = "chat-content";
+            const sender = document.createElement("strong");
+            sender.textContent = `${data.user} (${data.user_id}): `;
+            const body = document.createElement("span");
+            body.className = "chat-text";
+            body.textContent = data.message;
+            content.append(sender, body);
+
+            const edited = document.createElement("span");
+            edited.className = "edited";
+            edited.textContent = data.edited ? "(edited)" : "";
+            content.appendChild(edited);
+            line.appendChild(content);
+
+            if (canManage(data)) {
+                const actions = document.createElement("div");
+                actions.className = "actions";
+                const editBtn = document.createElement("button");
+                editBtn.type = "button";
+                editBtn.textContent = "Edit";
+                editBtn.addEventListener("click", () => startEdit(data.id, body, edited));
+                const deleteBtn = document.createElement("button");
+                deleteBtn.type = "button";
+                deleteBtn.textContent = "Delete";
+                deleteBtn.addEventListener("click", () => {
+                    if (confirm("Hide this message from your view? Other users will still see it.")) {
+                        socket.emit("delete_message", {id: data.id});
+                    }
+                });
+                actions.append(editBtn, deleteBtn);
+                line.appendChild(actions);
+            }
+            messages.appendChild(line);
+            rendered.set(data.id, line);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function startEdit(id, body, editedLabel) {
+            const original = body.textContent;
+            const input = document.createElement("input");
+            input.className = "edit-input";
+            input.maxLength = 2000;
+            input.value = original;
+            const save = document.createElement("button");
+            save.type = "button";
+            save.textContent = "Save";
+            const cancel = document.createElement("button");
+            cancel.type = "button";
+            cancel.textContent = "Cancel";
+
+            body.replaceWith(input);
+            input.after(save, cancel);
+            input.focus();
+            const finish = () => {
+                input.replaceWith(body);
+                save.remove();
+                cancel.remove();
+            };
+            save.addEventListener("click", () => {
+                const value = input.value.trim();
+                if (!value) { alert("Message cannot be empty."); return; }
+                socket.emit("edit_message", {id, message: value});
+                finish();
+            });
+            cancel.addEventListener("click", finish);
+            input.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") save.click();
+                if (event.key === "Escape") cancel.click();
+            });
+        }
+
+        document.getElementById("messageForm").addEventListener("submit", (event) => {
+            event.preventDefault();
+            const message = messageInput.value.trim();
+            if (!message) return;
+            socket.emit("send_message", {message});
+            messageInput.value = "";
+            messageInput.focus();
+        });
+
+        socket.on("chat_history", (items) => {
+            messages.replaceChildren();
+            rendered.clear();
+            items.forEach(addMessage);
+        });
+        socket.on("receive_message", addMessage);
+        socket.on("message_edited", (data) => {
+            const line = rendered.get(data.id);
+            if (!line) return;
+            const body = line.querySelector(".chat-text");
+            if (body) body.textContent = data.message;
+            const edited = line.querySelector(".edited");
+            if (edited) edited.textContent = "(edited)";
+        });
+        socket.on("message_hidden", (data) => {
+            const line = rendered.get(data.id);
+            if (line) line.remove();
+            rendered.delete(data.id);
+        });
+        socket.on("chat_error", (data) => alert(data.message));
+    </script>
+</body>
+</html>

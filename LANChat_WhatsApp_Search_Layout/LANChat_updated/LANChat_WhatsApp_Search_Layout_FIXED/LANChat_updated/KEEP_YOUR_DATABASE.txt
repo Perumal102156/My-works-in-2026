@@ -1,0 +1,2 @@
+IMPORTANT: This code package intentionally does not include chat.db.
+Copy these project files into your existing LANChat_updated folder and keep your current chat.db in place to preserve users and chat history.

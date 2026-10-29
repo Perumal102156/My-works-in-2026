@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LAN Chat</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; color: #182230; background: #f4f6f8; }
+    .app { display: grid; grid-template-columns: 300px minmax(0, 1fr); height: 100vh; min-height: 560px; }
+    .sidebar { background: #fff; border-right: 1px solid #d0d5dd; display: flex; flex-direction: column; min-height: 0; }
+    .brand { padding: 20px 18px 12px; border-bottom: 1px solid #eaecf0; }
+    .brand h2 { margin: 0 0 7px; font-size: 21px; }
+    .muted { color: #667085; font-size: 12px; }
+    .section-title { padding: 14px 18px 7px; color: #667085; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: .06em; }
+    .chat-list { overflow-y: auto; padding: 0 8px 12px; }
+    .chat-link { display: block; text-decoration: none; color: inherit; padding: 11px 10px; margin: 2px 0; border-radius: 8px; }
+    .chat-link:hover { background: #f2f4f7; }
+    .chat-link.active { background: #eaf2ff; }
+    .chat-name { display: block; font-weight: 600; margin-bottom: 4px; }
+    .chat-preview { display: block; color: #667085; font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .contacts { border-top: 1px solid #eaecf0; display: flex; flex-direction: column; min-height: 0; flex: 1; }
+    .user-search-wrap { padding: 0 10px 8px; }
+    #userSearch { width: 100%; padding: 9px 10px; border: 1px solid #d0d5dd; border-radius: 8px; outline: none; }
+    #userSearch:focus { border-color: #84adff; box-shadow: 0 0 0 2px #eaf2ff; }
+    .user-link { display: flex; align-items: center; gap: 9px; }
+    .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: #eaf2ff; color: #175cd3; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; flex: 0 0 34px; }
+    .user-details { min-width: 0; flex: 1; }
+    .user-name-line { display: flex; align-items: center; gap: 6px; }
+    .presence-dot { width: 9px; height: 9px; display: inline-block; border-radius: 50%; background: #98a2b3; flex: 0 0 9px; }
+    .presence-dot.online { background: #12b76a; box-shadow: 0 0 0 2px #d1fadf; }
+    .presence-label { color: #667085; font-size: 11px; }
+    .empty-search { padding: 10px; color: #667085; font-size: 12px; display: none; }
+    .sidebar-bottom { margin-top: auto; padding: 14px 18px; border-top: 1px solid #eaecf0; font-size: 13px; }
+    .sidebar-bottom a { margin-right: 12px; }
+    .main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .header { padding: 16px 22px; background: #fff; border-bottom: 1px solid #d0d5dd; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .header h2 { margin: 0 0 5px; font-size: 19px; }
+    #connection { font-size: 12px; color: #667085; }
+    #messages { flex: 1; overflow-y: auto; padding: 16px 22px; }
+    .chat-line { display: flex; align-items: flex-start; gap: 8px; margin: 12px 0; overflow-wrap: anywhere; }
+    .chat-content { flex: 1; min-width: 0; background: #fff; border: 1px solid #eaecf0; border-radius: 10px; padding: 10px 12px; }
+    .chat-text { white-space: pre-wrap; }
+    .edited { color: #667085; font-size: 11px; margin-left: 5px; }
+    .actions { display: flex; gap: 5px; }
+    .actions button { padding: 5px 7px; font-size: 12px; }
+    .attachment { display: block; margin-top: 8px; }
+    .attachment img { display: block; max-width: min(420px, 100%); max-height: 320px; border: 1px solid #ddd; border-radius: 6px; margin: 7px 0; }
+    .file-meta { color: #667085; font-size: 12px; margin-left: 6px; }
+    #messageForm { padding: 13px 18px; background: #fff; border-top: 1px solid #d0d5dd; }
+    .composer { display: flex; gap: 8px; align-items: center; }
+    #message { flex: 1; min-width: 0; padding: 11px; border: 1px solid #d0d5dd; border-radius: 8px; }
+    #file { max-width: 225px; font-size: 12px; }
+    button { cursor: pointer; border: 1px solid #d0d5dd; border-radius: 7px; background: #fff; }
+    .send { background: #175cd3; border-color: #175cd3; color: #fff; padding: 11px 16px; }
+    .notice { padding: 9px 12px; background: #fff4ce; margin: 8px 18px; border-radius: 6px; }
+    .edit-input { width: min(500px, 90%); padding: 7px; }
+    @media (max-width: 760px) {
+      .app { grid-template-columns: 118px minmax(0, 1fr); }
+      .brand { padding: 13px 9px; }
+      .brand h2 { font-size: 16px; }
+      .brand .muted, .chat-preview, .section-title, .sidebar-bottom .logout-label, .presence-label { display: none; }
+      .user-search-wrap { padding: 0 5px 7px; }
+      #userSearch { padding: 8px 5px; font-size: 11px; }
+      .user-link { gap: 4px; padding: 8px 4px; }
+      .user-avatar { width: 26px; height: 26px; flex-basis: 26px; font-size: 11px; }
+      .user-name-line { gap: 3px; }
+      .user-name-line .chat-name { font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .chat-link { padding: 10px 7px; font-size: 12px; }
+      .header { padding: 12px; }
+      #messages { padding: 10px; }
+      #messageForm { padding: 10px; }
+      .composer { flex-wrap: wrap; }
+      #message { flex-basis: 100%; }
+      #file { max-width: 65%; }
+      .actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <h2>LAN Chat</h2>
+      <div class="muted">Signed in as <strong>{{ user.display_name }}</strong></div>
+      <div class="muted">{{ user.user_id }}</div>
+    </div>
+    <div class="section-title">Chats</div>
+    <nav class="chat-list" aria-label="Conversations">
+      {% for convo in conversations %}
+        <a class="chat-link {% if convo.id == selected_conversation_id %}active{% endif %}"
+           href="{{ url_for('chat', conversation_id=convo.id) }}">
+          <span class="chat-name">{% if convo.type == 'group' %}👥 {% else %}💬 {% endif %}{{ convo.name }}</span>
+          <span class="chat-preview">{{ convo.last_message }}</span>
+        </a>
+      {% endfor %}
+    </nav>
+    <div class="contacts">
+      <div class="section-title">Start a chat</div>
+      <div class="user-search-wrap">
+        <input id="userSearch" type="search" placeholder="Search users by name or ID..." autocomplete="off" aria-label="Search users">
+      </div>
+      <nav class="chat-list" id="userList" aria-label="Users">
+        {% for contact in contacts %}
+          <a class="chat-link user-link" href="{{ url_for('chat', with_user=contact.id) }}"
+             data-user-id="{{ contact.id }}"
+             data-search="{{ (contact.display_name ~ ' ' ~ contact.user_id ~ ' ' ~ contact.role)|lower }}">
+            <span class="user-avatar">{{ contact.display_name[:1]|upper }}</span>
+            <span class="user-details">
+              <span class="user-name-line"><span class="chat-name">{{ contact.display_name }}</span><span class="presence-dot" id="presence-{{ contact.id }}" aria-label="Offline"></span></span>
+              <span class="chat-preview">{{ contact.user_id }}{% if contact.role == 'admin' %} · Admin{% endif %}</span>
+              <span class="presence-label" id="presence-label-{{ contact.id }}">Offline</span>
+            </span>
+          </a>
+        {% endfor %}
+        <div id="emptySearch" class="empty-search">No users match your search.</div>
+      </nav>
+    </div>
+    <div class="sidebar-bottom">
+      {% if user.role == 'admin' %}<a href="{{ url_for('admin') }}">Admin Dashboard</a>{% endif %}
+      <form method="post" action="{{ url_for('logout') }}" style="display:inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit"><span class="logout-label">Log </span>out</button>
+      </form>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="header">
+      <div><h2>{{ selected_name }}</h2><div class="muted">{% if selected_conversation.conversation_type == 'group' %}Shared group conversation{% else %}Private conversation{% endif %}</div></div>
+      <div id="connection">Connecting...</div>
+    </header>
+    {% with notices = get_flashed_messages() %}
+      {% for notice in notices %}<div class="notice">{{ notice }}</div>{% endfor %}
+    {% endwith %}
+    <div id="messages" aria-live="polite"></div>
+    <form id="messageForm" method="post" action="{{ url_for('upload_attachment') }}" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="conversation_id" value="{{ selected_conversation_id }}">
+      <div class="composer">
+        <input id="message" name="message" maxlength="2000" placeholder="Message {{ selected_name }}..." autocomplete="off">
+        <input id="file" type="file" name="file" aria-label="Attach an image or file (maximum 30 MB)">
+        <button class="send" type="submit">Send</button>
+      </div>
+      <div class="file-meta">Images and files up to 30 MB per file.</div>
+    </form>
+  </main>
+</div>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+  const socket = io();
+  const messages = document.getElementById("messages");
+  const messageInput = document.getElementById("message");
+  const currentUid = {{ user.id|tojson }};
+  const isAdmin = {{ (user.role == 'admin')|tojson }};
+  const conversationId = {{ selected_conversation_id|tojson }};
+  const rendered = new Map();
+  socket.on("connect", () => {
+    document.getElementById("connection").textContent = "Connected";
+    socket.emit("join_conversation", {conversation_id: conversationId});
+  });
+  socket.on("disconnect", () => document.getElementById("connection").textContent = "Disconnected");
+  function canManage(data) { return isAdmin || data.sender_uid === currentUid; }
+  function formatSize(bytes) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+  function addMessage(data) {
+    if (Number(data.conversation_id) !== Number(conversationId) || rendered.has(data.id)) return;
+    const line = document.createElement("div"); line.className = "chat-line"; line.dataset.messageId = data.id;
+    const content = document.createElement("div"); content.className = "chat-content";
+    const sender = document.createElement("strong"); sender.textContent = `${data.user} (${data.user_id}): `;
+    const body = document.createElement("span"); body.className = "chat-text"; body.textContent = data.message || "";
+    content.append(sender, body);
+    const edited = document.createElement("span"); edited.className = "edited"; edited.textContent = data.edited ? "(edited)" : ""; content.appendChild(edited);
+    if (data.attachment_url && data.attachment_name) {
+      const attachment = document.createElement("div"); attachment.className = "attachment";
+      if (data.attachment_is_image) { const img = document.createElement("img"); img.src = data.attachment_url; img.alt = data.attachment_name; img.loading = "lazy"; attachment.appendChild(img); }
+      const link = document.createElement("a"); link.href = data.attachment_url; link.textContent = data.attachment_name; link.setAttribute("download", data.attachment_name); attachment.appendChild(link);
+      if (Number.isFinite(data.attachment_size)) { const size = document.createElement("span"); size.className = "file-meta"; size.textContent = `(${formatSize(data.attachment_size)})`; attachment.appendChild(size); }
+      content.appendChild(attachment);
+    }
+    line.appendChild(content);
+    if (canManage(data)) {
+      const actions = document.createElement("div"); actions.className = "actions";
+      const editBtn = document.createElement("button"); editBtn.type = "button"; editBtn.textContent = "Edit"; editBtn.addEventListener("click", () => startEdit(data.id, body, edited));
+      const deleteBtn = document.createElement("button"); deleteBtn.type = "button"; deleteBtn.textContent = "Delete";
+      deleteBtn.addEventListener("click", () => { if (confirm("Hide this message from your view? Other participants will still see it.")) socket.emit("delete_message", {id: data.id}); });
+      actions.append(editBtn, deleteBtn); line.appendChild(actions);
+    }
+    messages.appendChild(line); rendered.set(data.id, line); messages.scrollTop = messages.scrollHeight;
+  }
+  function startEdit(id, body, editedLabel) {
+    const input = document.createElement("input"); input.className = "edit-input"; input.maxLength = 2000; input.value = body.textContent;
+    const save = document.createElement("button"); save.type = "button"; save.textContent = "Save";
+    const cancel = document.createElement("button"); cancel.type = "button"; cancel.textContent = "Cancel";
+    body.replaceWith(input); input.after(save, cancel); input.focus();
+    const finish = () => { input.replaceWith(body); save.remove(); cancel.remove(); };
+    save.addEventListener("click", () => { const value = input.value.trim(); if (!value) { alert("Message cannot be empty."); return; } socket.emit("edit_message", {id, message: value}); finish(); });
+    cancel.addEventListener("click", finish);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") save.click(); if (e.key === "Escape") cancel.click(); });
+  }
+  document.getElementById("messageForm").addEventListener("submit", event => {
+    const selectedFile = document.getElementById("file").files[0];
+    const message = messageInput.value.trim();
+    if (selectedFile) { if (selectedFile.size > 30 * 1024 * 1024) { event.preventDefault(); alert("Maximum file size is 30 MB."); } return; }
+    event.preventDefault(); if (!message) { alert("Type a message or choose a file to attach."); return; }
+    socket.emit("send_message", {message, conversation_id: conversationId}); messageInput.value = ""; messageInput.focus();
+  });
+  socket.on("chat_history", items => { messages.replaceChildren(); rendered.clear(); items.forEach(addMessage); });
+  socket.on("receive_message", addMessage);
+  socket.on("message_edited", data => { const line = rendered.get(data.id); if (!line) return; const body = line.querySelector(".chat-text"); if (body) body.textContent = data.message; const edited = line.querySelector(".edited"); if (edited) edited.textContent = "(edited)"; });
+  socket.on("message_hidden", data => { const line = rendered.get(data.id); if (line) line.remove(); rendered.delete(data.id); });
+  socket.on("chat_error", data => alert(data.message));
+
+  // Live online/offline badges for all accounts with an active chat connection.
+  function renderPresence(ids) {
+    const online = new Set((ids || []).map(Number));
+    document.querySelectorAll("[data-user-id]").forEach(link => {
+      const uid = Number(link.dataset.userId);
+      const dot = document.getElementById(`presence-${uid}`);
+      const label = document.getElementById(`presence-label-${uid}`);
+      const isOnline = online.has(uid);
+      if (dot) {
+        dot.classList.toggle("online", isOnline);
+        dot.setAttribute("aria-label", isOnline ? "Online" : "Offline");
+        dot.title = isOnline ? "Online" : "Offline";
+      }
+      if (label) label.textContent = isOnline ? "Online" : "Offline";
+      link.dataset.online = isOnline ? "1" : "0";
+    });
+    // Online users first, keeping the existing alphabetical order within each status.
+    const list = document.getElementById("userList");
+    if (list) {
+      const links = Array.from(list.querySelectorAll("a[data-user-id]"));
+      links.sort((a, b) => Number(b.dataset.online || 0) - Number(a.dataset.online || 0));
+      links.forEach(link => list.insertBefore(link, document.getElementById("emptySearch")));
+    }
+  }
+  socket.on("presence_update", data => renderPresence(data.online_ids));
+
+  // Search matches display name, user ID, or role; it does not expose hidden accounts.
+  const userSearch = document.getElementById("userSearch");
+  userSearch.addEventListener("input", () => {
+    const query = userSearch.value.trim().toLowerCase();
+    let visible = 0;
+    document.querySelectorAll("#userList a[data-user-id]").forEach(link => {
+      const matches = link.dataset.search.includes(query);
+      link.style.display = matches ? "flex" : "none";
+      if (matches) visible++;
+    });
+    document.getElementById("emptySearch").style.display = visible ? "none" : "block";
+  });
+</script>
+</body>
+</html>
